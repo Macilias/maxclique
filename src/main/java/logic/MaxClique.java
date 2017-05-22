@@ -21,8 +21,6 @@ public class MaxClique {
 
     private static final Logger LOG = Logger.getLogger(MaxClique.class);
 
-    //0 heiss wirklich 0 bis auf die ausgabe der Maximalen Clique
-    //1 heisst normal performant, beginn neuer Suche wird angedeutet
     final boolean maxElseAll;
 
     public MaxClique(CommentLevel commentLevel, boolean onlyMax) {
@@ -52,6 +50,10 @@ public class MaxClique {
         this.maxElseAll = onlyMax;
     }
 
+    public Collection<Vertex> importMatrix(int[][] matrix) {
+        return importMatrix(matrix, new String[matrix[0].length]);
+    }
+
     /**
      * Transferiert ein 2-dimensionales int array in einen Graphen
      *
@@ -59,26 +61,32 @@ public class MaxClique {
      * @return Graph inform eines Vektors (Objektorientiert)
      * @author Maciek
      */
-    public Collection<Vertex> importMatrix(int[][] matrix) {
+    public Collection<Vertex> importMatrix(int[][] matrix, String[] names) {
         ArrayList<Vertex> graph = new ArrayList<>();
+        if (names == null || names.length != matrix[0].length) {
+            LOG.error("names are not valid");
+            names = new String[matrix[0].length];
+        }
+        // create vertex's
         for (int i = 0; i < matrix.length; i++) {
-            Vertex v = new VertexImpl(i + 1);
+            Vertex v = new VertexImpl(i + 1, names[i]);
             graph.add(v);
         }
+        // create connections
         for (int i = 0; i < matrix.length; i++) {
             for (int j = 0; j < matrix[i].length; j++) {
                 if (graph.get(i) != null) {
-                    Vertex v = (Vertex) graph.get(i);
+                    Vertex v = graph.get(i);
                     if (matrix[i][j] == 1) {
-                        v.getAdjazete().put(((Vertex) graph.get(j)).getId(), graph.get(j));
+                        v.getAdjazete().put((graph.get(j)).getId(), graph.get(j));
                     } else {
-                        if (i != j) v.getRemoved().put(((Vertex) graph.get(j)).getId(), graph.get(j));
+                        if (i != j) v.getRemoved().put((graph.get(j)).getId(), graph.get(j));
                     }
                 }
             }
         }
         if (LOG.isDebugEnabled()) {
-            LOG.debug("UNSORTIERTER GRAPH:");
+            LOG.debug("UNSORTED GRAPH:");
             LOG.debug( printGraph(graph) );
         }
         return graph;
@@ -185,8 +193,7 @@ public class MaxClique {
             tmx.put(v.getId(), v);
             LOG.info("[" + i + " von " + graph.size() + "] Beginne neue MaxCliquenSuche bei " + v.getId() + "ten Knoten!");
             LOG.debug(" bei " + v.getAdjazete().values().size() +
-                    " Adjazenten und Profezeihung einer höchstens " + maxGrad +
-                    " elemtrigen Clique");
+                    " Adjazenten und Profezeihung einer höchstens " + maxGrad + " elemtrigen Clique");
             LOG.debug("Seine Adjazenten sind: ");
             Enumeration a = v.getAdjazete().elements();
             StringBuffer logBuf = new StringBuffer();
@@ -261,9 +268,9 @@ public class MaxClique {
             //compare Cliques
             if (LOG.isDebugEnabled()) {
                 StringBuffer msg = new StringBuffer();
-                msg.append("Bisher ist die Gösste Clique max mit " + max.values().size() + " Knoten");
+                msg.append("Bisher ist die größte Clique max mit " + max.values().size() + " Knoten");
                 String add = (tmx.values().size() == max.values().size()) ? "ebenfalls ":"";
-                msg.append("Unsere neue hat " + add + tmx.size() + " Knoten");
+                msg.append("\nUnsere neue hat " + add + tmx.size() + " Knoten");
                 LOG.debug(msg.toString());
                 LOG.debug( printClique( tmx ));
             }
@@ -272,7 +279,7 @@ public class MaxClique {
                 max = tmx;
                 tmx = new TreeMap<>();
             } else {
-                LOG.debug("Max bleit die Grösste Clique");
+                LOG.debug("Max bleit die größte Clique");
                 tmx = new TreeMap<>();
             }
         }
@@ -303,7 +310,7 @@ public class MaxClique {
 
 
     /**
-     * Erzeugt einen Zufälligen Graphen mit vorgegebener Anzhal von Knoten
+     * Erzeugt einen zufälligen Graphen mit vorgegebener Anzhal von Knoten
      *
      * @param groesse als int die die Grösse des Graphen kennzeichnet
      * @author Maciek

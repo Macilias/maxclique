@@ -66,7 +66,6 @@ public class PrintUtils {
             Vertex v = (Vertex) it.next();
             out.append(v.getId() + ", ");
         }
-        out.append("\n");
         return out.toString();
     }
 

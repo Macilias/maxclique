@@ -1,6 +1,8 @@
 package model;
 
 import java.util.Hashtable;
+import java.util.Optional;
+import org.apache.commons.lang3.Validate;
 
 /**
  * Some Description
@@ -9,11 +11,13 @@ import java.util.Hashtable;
  */
 public class VertexImpl implements java.lang.Comparable<Vertex>, Vertex {
 
-    public VertexImpl(int id){
+    public VertexImpl(int id, String name){
         this.id = id;
+        this.name = name;
     }
-    public int id = 0;
+    private int id = 0;
     private int popularity = 0;
+    private String name;
 
     Hashtable<Integer, Vertex> adjazete = new Hashtable<>();
 
@@ -32,6 +36,14 @@ public class VertexImpl implements java.lang.Comparable<Vertex>, Vertex {
     @Override
     public int getId() {
         return id;
+    }
+
+    @Override
+    public Optional<String> getName() {
+        if (name == null) {
+            return Optional.empty();
+        }
+        return Optional.of(name);
     }
 
     @Override
