@@ -1,4 +1,4 @@
-package logic.maximalecliquen;
+package model;
 
 import java.util.Hashtable;
 

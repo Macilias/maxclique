@@ -1,4 +1,4 @@
-package logic.maximalecliquen;
+package model;
 
 /**
  * Some Description

@@ -1,7 +1,7 @@
 package view;
 
-import logic.maximalecliquen.MaxClique;
-import logic.maximalecliquen.Vertex;
+import logic.MaxClique;
+import model.Vertex;
 import model.Examples;
 import model.enums.CommentLevel;
 

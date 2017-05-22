@@ -1,4 +1,6 @@
-package logic.maximalecliquen;
+package model;
+
+import model.Vertex;
 
 /**
  * Some Description

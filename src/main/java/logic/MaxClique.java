@@ -1,10 +1,16 @@
-package logic.maximalecliquen;
+package logic;
 
+import model.Vertex;
+import model.VertexImpl;
 import model.enums.CommentLevel;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 
 import java.util.*;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import static logic.PrintUtils.*;
+
 
 /**
  * Some Description
@@ -13,13 +19,14 @@ import java.util.logging.Logger;
  */
 public class MaxClique {
 
-    private static final Logger LOG = Logger.getLogger("MaxClique");
+    private static final Logger LOG = Logger.getLogger(MaxClique.class);
 
     //0 heiss wirklich 0 bis auf die ausgabe der Maximalen Clique
     //1 heisst normal performant, beginn neuer Suche wird angedeutet
     final boolean maxElseAll;
 
     public MaxClique(CommentLevel commentLevel, boolean onlyMax) {
+        BasicConfigurator.configure();
         /**
          * FINEST  -> TRACE -> VERBOSE
          * FINER   -> DEBUG -> VERBOSE
@@ -31,13 +38,13 @@ public class MaxClique {
          */
         switch (commentLevel) {
             case QUIET:
-                LOG.setLevel(Level.SEVERE);
+                LOG.setLevel(Level.WARN);
                 break;
             case NORMAL:
                 LOG.setLevel(Level.INFO);
                 break;
             case VERBOSE:
-                LOG.setLevel(Level.ALL);
+                LOG.setLevel(Level.DEBUG);
                 break;
             default:
                 LOG.setLevel(Level.INFO);
@@ -70,9 +77,9 @@ public class MaxClique {
                 }
             }
         }
-        if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest("UNSORTIERTER GRAPH:");
-            LOG.finest(printGraph(graph));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("UNSORTIERTER GRAPH:");
+            LOG.debug( printGraph(graph) );
         }
         return graph;
     }
@@ -95,11 +102,11 @@ public class MaxClique {
             Iterator<Vertex> it = (buckets.get(k - 1)).iterator();
             while (it.hasNext()) sortedGraph.add(it.next());
         }
-        if (LOG.isLoggable(Level.FINEST)) {
-            LOG.finest("SORTIERTER GRAPH:");
-            LOG.finest( printGraph(sortedGraph));
-            LOG.finest("Aufsummerte intbuckets:");
-            LOG.finest( printBuckets(intbuckets));
+        if (LOG.isDebugEnabled()) {
+            LOG.debug("SORTED GRAPH:");
+            LOG.debug( printGraph( sortedGraph ));
+            LOG.debug("SUMMED INTBUCKETS:");
+            LOG.debug( printBuckets( intbuckets ));
         }
         graph = null;
         return sortedGraph;
@@ -132,7 +139,7 @@ public class MaxClique {
         // die Cliquen als TreeMaps sonst die Knoten der Grössten Clique
         int maxGrad = graph.size();
         if (maxGrad == 0) {
-            LOG.warning("Der graph war leer");
+            LOG.warn("Der graph war leer");
             return new ArrayList<Vertex>();
         }
         if (maxElseAll) {
@@ -141,20 +148,20 @@ public class MaxClique {
             maxGrad = (graph.get(0).getAdjazete().values().size()) + 1;
             int anz = 0;
             if (maxGrad - 1 > 0) anz = intbuckets[maxGrad - 1];
-            if (LOG.isLoggable(Level.FINEST)) {
-                LOG.finest("Der Höchstmögliche MaxGrad währe = " + maxGrad);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Der Höchstmögliche MaxGrad währe = " + maxGrad);
             }
             while (anz < maxGrad - 1) {
                 maxGrad--;
                 anz = 0;
                 if (maxGrad - 1 > 0) anz = intbuckets[maxGrad - 1];
-                if (LOG.isLoggable(Level.FINEST)) {
-                    LOG.finest("Zu diesen Grad gibt es nicht genug andere Cliqunmitglieder = " + intbuckets[maxGrad - 1]);
-                    LOG.finest("reicht  " + maxGrad + "? mit nun " + anz + " möglichen Cliquen Kandidaten?");
+                if (LOG.isDebugEnabled()) {
+                    LOG.debug("Zu diesen Grad gibt es nicht genug andere Cliqunmitglieder = " + intbuckets[maxGrad - 1]);
+                    LOG.debug("reicht  " + maxGrad + "? mit nun " + anz + " möglichen Cliquen Kandidaten?");
                 }
             }
-            if (LOG.isLoggable(Level.FINEST)) {
-                LOG.finest("Der neue MaxGrad beträgt = " + maxGrad);
+            if (LOG.isDebugEnabled()) {
+                LOG.debug("Der neue MaxGrad beträgt = " + maxGrad);
             }
         }
         TreeMap<Integer, Vertex> max = new TreeMap<>();
@@ -167,52 +174,48 @@ public class MaxClique {
             Vertex v = graph.get(i);
             if (maxElseAll) {
                 if (v.getAdjazete().values().size() + 1 < maxGrad) {
-                    if (LOG.isLoggable(Level.FINEST)) {
-                        LOG.finest("Bisheriger MaxGrad = " + maxGrad);
-                        LOG.finest("Aktuelle AdjAnzahl = " + v.getAdjazete().values().size());
+                    if (LOG.isDebugEnabled()) {
+                        LOG.debug("Bisheriger MaxGrad = " + maxGrad);
+                        LOG.debug("Aktuelle AdjAnzahl = " + v.getAdjazete().values().size());
                     }
                     maxGrad = v.getAdjazete().values().size() + 1;
                     if (max.size() >= maxGrad) break;
                 }
             }
             tmx.put(v.getId(), v);
-            LOG.finer("__Beginne neue MaxCliquenSuche bei " + v.getId() + "ten Knoten!__");
-            LOG.finer(i + " von " + graph.size());
-            LOG.finest(" bei " + v.getAdjazete().values().size() +
+            LOG.info("[" + i + " von " + graph.size() + "] Beginne neue MaxCliquenSuche bei " + v.getId() + "ten Knoten!");
+            LOG.debug(" bei " + v.getAdjazete().values().size() +
                     " Adjazenten und Profezeihung einer höchstens " + maxGrad +
                     " elemtrigen Clique");
-            LOG.finest("Seine Adjazenten sind: ");
+            LOG.debug("Seine Adjazenten sind: ");
             Enumeration a = v.getAdjazete().elements();
             StringBuffer logBuf = new StringBuffer();
             while (a.hasMoreElements()) {
                 Vertex adj = (Vertex) a.nextElement();
-                if (LOG.isLoggable(Level.FINEST)) logBuf.append(adj.getId() + ", ");
+                if (LOG.isDebugEnabled()) logBuf.append(adj.getId() + ", ");
                 tmx.put(adj.getId(), adj);
             }
-            if (LOG.isLoggable(Level.FINEST)) {
-                LOG.finest(logBuf.toString());
-                LOG.finest("Profezeihung: die maximale " + "Clique kann höchstens " + maxGrad + " elementrig sein!");
-                LOG.finest("Jetzt werden die Members geprüft: ");
+            if (LOG.isDebugEnabled()) {
+                LOG.debug(logBuf.toString());
+                LOG.debug("Profezeihung: die maximale " + "Clique kann höchstens " + maxGrad + " elementrig sein!");
+                LOG.debug("Jetzt werden die Members geprüft: ");
             }
             Iterator it1tmx = tmx.values().iterator();
             while (it1tmx.hasNext()) {
                 Vertex mem = (Vertex) it1tmx.next();
                 mem.incPopularity(); //Der Knoten kennst sich schliesslich auch
-                LOG.finest("Ist der " + mem.getId() + "te adjazent zu anderen Members?");
+                LOG.debug("Ist der " + mem.getId() + "te adjazent zu anderen Members?");
                 // prove member
                 for (Object o : tmx.values()) {
                     Vertex othermem = (Vertex) o;
                     if (!mem.equals(othermem)) {
-                        LOG.finest("Zu " + othermem.getId() + "ten adjazent?: ");
-//                        if (commentLevel > 2) if ((othermem.id) < 10) System.out.print(" ");
+                        String space = "Zu " + othermem.getId() + "ten adjazent?: " + (othermem.getId() < 10 ? " " : "");
                         if (!mem.adjazent(othermem)) {
                             othermem.decPopularity();
-                            LOG.finest("NEIN -> Entfernten Popularität sinkt: "
-                                    + othermem.getPopularity());
+                            LOG.debug(space + "NEIN -> Entfernten Popularität sinkt: " + othermem.getPopularity());
                         } else {
                             othermem.incPopularity();
-                            LOG.finest("JA   -> Adjazenten Popularität steigt: "
-                                    + othermem.getPopularity());
+                            LOG.debug(space + "JA   -> Adjazenten Popularität steigt: " + othermem.getPopularity());
                         }
                     }
                 }
@@ -231,49 +234,50 @@ public class MaxClique {
                     if (mem.getPopularity() > other.getPopularity()) mem = other;
                 }
                 //Rekonstruktion des Zusatands vor seiner Bewertung:
-                LOG.finest("Mitunter die schlechteste Bewertung hatte der " + mem.getId() + "te Knoten");
-                LOG.finest("Nun wird der Zustand vor seiner Bewertung rekostruiert");
+                LOG.debug("Mitunter die schlechteste Bewertung ("+ mem.getPopularity() +") hatte der " + mem.getId() + "te Knoten");
+                LOG.debug("Nun wird der Zustand vor seiner Bewertung rekostruiert");
                 //Proove Popularity
                 ittmx = tmx.values().iterator();
                 while (ittmx.hasNext()) {
                     Vertex othermem = (Vertex) ittmx.next();
                     if (!mem.equals(othermem)) {
-                        LOG.finest("Bei " + othermem.getId() + " ");
                         if (!mem.adjazent(othermem)) {
                             othermem.incPopularity();
-                            LOG.finest("steigt die Popularität: " + othermem.getPopularity());
+                            LOG.debug("Bei " + othermem.getId() + " steigt die Popularität auf: " + othermem.getPopularity());
                         } else {
                             //Seine Positiven Bewertungen sind ebenfalls unerwünscht
                             othermem.decPopularity();
-                            LOG.finest("sinkt die Popularität: " + othermem.getPopularity());
+                            LOG.debug("Bei " + othermem.getId() + " sinkt die Popularität auf: " + othermem.getPopularity());
                         }
                     }
                 }
-                LOG.finest("Der Knoten wird aus der Clique enfertnt");
+                LOG.debug("Der Knoten wird aus der Clique enfertnt");
                 tmx.remove(mem.getId());
-                LOG.finest( printCliqueTree(tmx));
+                LOG.debug( printCliqueTree(tmx));
                 cliqueStehtFest = isClique(tmx);
             }
             //Resete die Popularitäten:
             resetPopularity(graph);
             //compare Cliques
-            StringBuffer msg = new StringBuffer();
-            msg.append("Bisher ist die Gösste Clique max mit " + max.values().size() + " Knoten");
-            String add = (tmx.values().size() == max.values().size()) ? "ebenfalls ":"";
-            msg.append("Unsere neue hat " + add + tmx.size() + " Knoten");
-            LOG.fine(msg.toString());
-            LOG.finest(printClique(tmx));
+            if (LOG.isDebugEnabled()) {
+                StringBuffer msg = new StringBuffer();
+                msg.append("Bisher ist die Gösste Clique max mit " + max.values().size() + " Knoten");
+                String add = (tmx.values().size() == max.values().size()) ? "ebenfalls ":"";
+                msg.append("Unsere neue hat " + add + tmx.size() + " Knoten");
+                LOG.debug(msg.toString());
+                LOG.debug( printClique( tmx ));
+            }
             if (tmx.values().size() > max.values().size()) {
-                LOG.fine("Max wird also abgelöst");
+                LOG.debug("Max wird also abgelöst");
                 max = tmx;
                 tmx = new TreeMap<>();
             } else {
-                LOG.fine("Max bleit also die Grösste Clique");
+                LOG.debug("Max bleit die Grösste Clique");
                 tmx = new TreeMap<>();
             }
         }
         LOG.info("Die Maximale Clique enthällt " + max.values().size() + " Elemente");
-        LOG.info(printResultingMaxValues(max));
+        LOG.info( printTreeMap(max) );
         return max.values();
     }
 
@@ -297,98 +301,6 @@ public class MaxClique {
         return cliqueStehtFest;
     }
 
-    /**
-     * Gibt die String represenation des Graphen aus
-     *
-     * @param graph der Graph als Vektror von Knoten mit adjazenten
-     * @author Maciek
-     */
-    public String printGraph(ArrayList<Vertex> graph) {
-        StringBuffer out = new StringBuffer();
-        for (int i = 0; i < graph.size(); i++) {
-            Vertex v = graph.get(i);
-            out.append(v.getId() + " Knoten ist adjazent zu: ");
-            Iterator ita = v.getAdjazete().values().iterator();
-            while (ita.hasNext()) {
-                Vertex va = (Vertex) ita.next();
-                if (va != null) {
-                    out.append(va.getId() + ",");
-                }
-            }
-            out.append("Insgesammt: " + v.getAdjazete().values().size() + " Stück \n");
-            out.append("\n");
-            out.append("und ist enfernt zu: ");
-            Iterator ite = v.getRemoved().values().iterator();
-            while (ite.hasNext()) {
-                Vertex ve = (Vertex) ite.next();
-                if (ve != null) {
-                    out.append(ve.getId() + ",");
-                }
-            }
-            out.append("Insgesammt: " + v.getRemoved().values().size() + " Stück");
-            out.append("\n");
-        }
-        return out.toString();
-    }
-
-    /**
-     * Gibt die Clique aus
-     *
-     * @param clique
-     * @author Maciek
-     */
-    public String printClique(TreeMap clique) {
-        StringBuffer out = new StringBuffer();
-        out.append("PRINT CLIQUE");
-        Iterator it = clique.values().iterator();
-        while (it.hasNext()) {
-            Vertex v = (Vertex) it.next();
-            out.append(v.getId() + ", ");
-        }
-        out.append("\n");
-        return out.toString();
-    }
-
-    /**
-     * Überwacht die Popularitätsveränderungen der Clique
-     *
-     * @param clique die Clique als Vektror von Knoten mit POpularitäten
-     * @author Maciek
-     */
-    public String printCliqueTree(TreeMap clique) {
-        StringBuffer out = new StringBuffer();
-        out.append("PRINT CLIQUE");
-        Iterator it = clique.values().iterator();
-        while (it.hasNext()) {
-            Vertex v = (Vertex) it.next();
-            out.append(v.getId() + " Knoten hat die Popularität: " + v.getPopularity() + "\n");
-        }
-        return out.toString();
-    }
-
-    /**
-     * Gibt die intbuckets aus
-     *
-     * @param intbuckets
-     * @return
-     */
-    public String printBuckets(int[] intbuckets) {
-        StringBuffer out = new StringBuffer();
-        for (int i = 0; i < intbuckets.length; i++) {
-            out.append(intbuckets[i] + ", ");
-        }
-        return out.toString();
-    }
-
-    private String printResultingMaxValues(TreeMap<Integer, Vertex> max) {
-        Iterator it = max.values().iterator();
-        StringBuffer buffer = new StringBuffer();
-        while (it.hasNext()) {
-            Vertex v = (Vertex) it.next();
-            buffer.append(v.getId() + ", ");
-        }
-        return buffer.toString();
-    }
 
     /**
      * Erzeugt einen Zufälligen Graphen mit vorgegebener Anzhal von Knoten
