@@ -10,6 +10,7 @@ import org.apache.log4j.Logger;
 import java.util.*;
 
 import static logic.PrintUtils.*;
+import static logic.GraphUtils.*;
 
 
 /**
@@ -50,87 +51,6 @@ public class MaxClique {
         this.maxElseAll = onlyMax;
     }
 
-    public Collection<Vertex> importMatrix(int[][] matrix) {
-        return importMatrix(matrix, new String[matrix[0].length]);
-    }
-
-    /**
-     * Transferiert ein 2-dimensionales int array in einen Graphen
-     *
-     * @param matrix als doppeldimensionales array
-     * @return Graph inform eines Vektors (Objektorientiert)
-     * @author Maciek
-     */
-    public Collection<Vertex> importMatrix(int[][] matrix, String[] names) {
-        ArrayList<Vertex> graph = new ArrayList<>();
-        if (names == null || names.length != matrix[0].length) {
-            LOG.error("names are not valid");
-            names = new String[matrix[0].length];
-        }
-        // create vertex's
-        for (int i = 0; i < matrix.length; i++) {
-            Vertex v = new VertexImpl(i + 1, names[i]);
-            graph.add(v);
-        }
-        // create connections
-        for (int i = 0; i < matrix.length; i++) {
-            for (int j = 0; j < matrix[i].length; j++) {
-                if (graph.get(i) != null) {
-                    Vertex v = graph.get(i);
-                    if (matrix[i][j] == 1) {
-                        v.getAdjazete().put((graph.get(j)).getId(), graph.get(j));
-                    } else {
-                        if (i != j) v.getRemoved().put((graph.get(j)).getId(), graph.get(j));
-                    }
-                }
-            }
-        }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("UNSORTED GRAPH:");
-            LOG.debug( printGraph(graph) );
-        }
-        return graph;
-    }
-
-    public ArrayList<Vertex> bucketsort(ArrayList<Vertex> graph, int[] intbuckets) {
-        // histogramm erstellen
-        ArrayList<ArrayList<Vertex>> buckets = initializeEmptyBuckets(graph.size());
-        for (Vertex v : graph) {
-            int size = v.getAdjazete().values().size();
-            buckets.get(size).add(v);
-            intbuckets[size]++;
-        }
-        // aufsummieren der anzahl
-        for (int j = intbuckets.length - 2; j > 0; j--) {
-            intbuckets[j] = intbuckets[j] + intbuckets[j + 1];
-        }
-        // sortieren
-        ArrayList<Vertex> sortedGraph = new ArrayList<>();
-        for (int k = buckets.size(); k > 0; k--) {
-            Iterator<Vertex> it = (buckets.get(k - 1)).iterator();
-            while (it.hasNext()) sortedGraph.add(it.next());
-        }
-        if (LOG.isDebugEnabled()) {
-            LOG.debug("SORTED GRAPH:");
-            LOG.debug( printGraph( sortedGraph ));
-            LOG.debug("SUMMED INTBUCKETS:");
-            LOG.debug( printBuckets( intbuckets ));
-        }
-        graph = null;
-        return sortedGraph;
-    }
-
-    private ArrayList<ArrayList<Vertex>> initializeEmptyBuckets(int size) {
-        ArrayList<ArrayList<Vertex>> buckets = new ArrayList<>(size);
-        int i = 0;
-        while (i < size) {
-            buckets.add(i, new ArrayList<>());
-            i++;
-        }
-        return buckets;
-    }
-
-
     /**
      * Findet die Maximale Clique durch betrachten der adjazenten
      * eines Knoten als seine Clique und anschliessenden auschluss von
@@ -140,7 +60,7 @@ public class MaxClique {
      * @return die maximale Clique als Collection<Vertex>
      * @author Maciek
      */
-    public Collection<Vertex> findmaxcliqueHASHandHEAP(Collection<Vertex> graph_coll) {
+    public Collection<Vertex> findMaxClique(Collection<Vertex> graph_coll) {
         ArrayList<Vertex> graph = new ArrayList<>(graph_coll);
         // Grad = Anzahl von Verbindungen mit anderen Knoten + der Knoten selbs
         // Falls alle Cliquen gewünscht werten enhält die ArrayList<Vertex>
@@ -260,11 +180,11 @@ public class MaxClique {
                 }
                 LOG.debug("Der Knoten wird aus der Clique enfertnt");
                 tmx.remove(mem.getId());
-                LOG.debug( printCliqueTree(tmx));
+                LOG.info( printCliqueTree(tmx));
                 cliqueStehtFest = isClique(tmx);
             }
             //Resete die Popularitäten:
-            resetPopularity(graph);
+            graph = resetPopularity(graph);
             //compare Cliques
             if (LOG.isDebugEnabled()) {
                 StringBuffer msg = new StringBuffer();
@@ -283,170 +203,11 @@ public class MaxClique {
                 tmx = new TreeMap<>();
             }
         }
-        LOG.info("Die Maximale Clique enthällt " + max.values().size() + " Elemente");
+        LOG.warn("Die Maximale Clique enthällt " + max.values().size() + " Elemente");
         LOG.info( printTreeMap(max) );
         return max.values();
     }
 
-    private void resetPopularity(ArrayList<Vertex> graph) {
-        for (int n = 0; n < graph.size(); n++) {
-            (graph.get(n)).resPopularity(); //Neue Clique - neue Popularität
-        }
-    }
 
-    private boolean isClique(TreeMap tmx) {
-        boolean cliqueStehtFest = true;
-        if (!tmx.isEmpty()) {
-            Iterator itcheck = tmx.values().iterator();
-            while (itcheck.hasNext()) {
-                Vertex vc = (Vertex) itcheck.next();
-                if ((vc).getPopularity() != tmx.values().size()) {
-                    cliqueStehtFest = false;
-                }
-            }
-        }
-        return cliqueStehtFest;
-    }
-
-
-    /**
-     * Erzeugt einen zufälligen Graphen mit vorgegebener Anzhal von Knoten
-     *
-     * @param groesse als int die die Grösse des Graphen kennzeichnet
-     * @author Maciek
-     */
-    public int[][] randomGraph(int groesse) {
-        int[][] randomGraph = new int[groesse][groesse];
-        for (int i = 0; i < groesse; i++) {
-            for (int j = 0; j < i; j++) {
-                int random = (int) Math.rint(Math.random());
-                randomGraph[i][j] = random;
-                randomGraph[j][i] = random;
-            }
-        }
-        return randomGraph;
-    }
-
-    /**
-     * Findet die Maximale Clique durch betrachten der adjazenten
-     * eines Knoten als seine Clique und anschliessenden Auschluss von
-     * Knoten die untereinander nicht adjazent sind.
-     *
-     * @param graph als Vektror von Knoten mit Adjazenten
-     * @return die maximale Clique als Vektor von Knoten
-     * @author Maciek
-     */
-    public ArrayList<Vertex> findmaxcliqueHASH(ArrayList<Vertex> graph) {
-        //Durchsuch den Graphen nach höchsten adjazenten Grad
-        //Grad = Anzahl von Verbindungen mit anderen Knoten
-        int maxGrad = getMaxGrad(graph);
-        ArrayList<Vertex> max = new ArrayList<>();
-        ArrayList<Vertex> tmx = new ArrayList<>();
-        //Alle Knoten bilden eigene Cliquen die geprüft werden müssen
-        //Sollte jedoch schon eine Clique mit maximaler Anzahl adjazenten (= maxGrad)
-        //bereits gefunden sein, so kann das Ergebniss nicht mehr
-        //verbessert weredn.
-        for (int i = 0; i < graph.size() && max.size() < maxGrad; i++) {
-            Vertex v = graph.get(i);
-            tmx.add(v);
-            LOG.info("__Beginne neue MaxCliquenSuche bei " + v.getId() + "ten Knoten!__");
-            Enumeration a = v.getAdjazete().elements();
-            StringBuffer buffer = new StringBuffer();
-            while (a.hasMoreElements()) {
-                Vertex adj = (Vertex) a.nextElement();
-                buffer.append(adj.getId() + ", ");
-                tmx.add(adj);
-            }
-            LOG.info(buffer.toString());
-            for (int k = 1; k < tmx.size(); k++) {
-                Vertex mem = tmx.get(k);
-                mem.incPopularity(); //Der Knoten kennst sich schliesslich auch
-                for (int l = 0; l < tmx.size(); l++) {
-                    Vertex othermem = tmx.get(l);
-                    if (!mem.equals(othermem)) {
-                        if (!mem.adjazent(othermem)) {
-                            othermem.decPopularity();
-                        } else {
-                            othermem.incPopularity();
-                        }
-                    }
-                }
-            }
-            // Eine Clique stellt sich ein, wenn die Popularität der Mitglieder
-            // gleich der Grösse der Clique -1 ist
-            // (Dies Könnte noch beschleunigt werden durch HEAP da das kleinste Element vorne währe
-            // und man somit sofort den Gegenbeis (m.popularity != tmx.size) hätte, und es später
-            // schneller enfernen könnte)
-            boolean CliqueStehtFest = isClique(tmx);
-            while (!CliqueStehtFest) {
-                // Suche des unpoulärsten Knotens:
-                // DESWEGEN AUCH CLIQUEN ALS HEAP SPEICHERN:
-                Vertex mem = tmx.get(0);
-                for (int k = 1; k < tmx.size(); k++) {
-                    Vertex temp = tmx.get(k);
-                    if (temp.getPopularity() < mem.getPopularity()) mem = temp;
-                }
-                // Rekonstruktion des Zusatands vor seiner Bewertung:("Nun wird der Zustand vor seiner Bewertung rekostruiert");
-                // Proove Popularity
-                for (int l = 0; l < tmx.size(); l++) {
-                    Vertex othermem = tmx.get(l);
-                    if (!mem.equals(othermem)) {
-                        if (!mem.adjazent(othermem)) {
-                            othermem.incPopularity();
-                        } else {
-                            // Seine Positiven Bewertungen sind ebenfalls unerwünscht
-                            othermem.decPopularity();
-                        }
-                    }
-                }
-                tmx.remove(mem);
-                CliqueStehtFest = true;
-                for (int m = 0; m < tmx.size(); m++) {
-                    if (((Vertex) tmx.get(m)).getPopularity() != tmx.size() - 1) CliqueStehtFest = false;
-                }
-            }
-            // Resete die Popularitäten:
-            resetPopularity(graph);
-            // compare Cliques
-            LOG.info("Bisher ist die Gösste Clique max mit " + max.size() + " Knoten");
-            LOG.info("Unsere neue hat " + tmx.size() + " Knoten");
-            if (tmx.size() > max.size()) {
-                LOG.info("Max wird also abgelöst");
-                max = tmx;
-                tmx = new ArrayList<>();
-            } else {
-                LOG.info("Max bleit also die Grösste Clique");
-                tmx = new ArrayList<>();
-            }
-        }
-        LOG.info("Die Maximale Clique enthällt " + max.size() + " Elemente");
-        StringBuffer buffer = new StringBuffer();
-        for (int i = 0; i < max.size(); i++) {
-            Vertex v = max.get(i);
-            buffer.append(v.getId() + ", ");
-        }
-        LOG.info(buffer.toString());
-        return max;
-    }
-
-    private boolean isClique(ArrayList<Vertex> tmx) {
-        boolean CliqueStehtFest = true;
-        for (int m = 0; m < tmx.size() && CliqueStehtFest; m++) {
-            if ((tmx.get(m)).getPopularity() != tmx.size() - 1) {
-                CliqueStehtFest = false;
-                break;
-            }
-        }
-        return CliqueStehtFest;
-    }
-
-    private int getMaxGrad(ArrayList<Vertex> graph) {
-        int maxGrad = 0;
-        for (int g = 0; g < graph.size(); g++) {
-            Vertex v = graph.get(g);
-            if (v.getAdjazete().size() > maxGrad) maxGrad = v.getAdjazete().size();
-        }
-        return maxGrad;
-    }
 
 }

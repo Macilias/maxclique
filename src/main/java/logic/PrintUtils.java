@@ -25,13 +25,15 @@ public class PrintUtils {
         out.append("printGraph():\n");
         for (int i = 0; i < graph.size(); i++) {
             Vertex v = graph.get(i);
-            out.append(String.format("\nKnoten mit id: %s ist adjazent zu: ", v.getId()));
+            String name = v.getName().isPresent() ? String.format("(%s) ", v.getName().get()) : "";
+            int aCount = v.getAdjazete().values().size();
+            int rCount = v.getRemoved().values().size();
+            String count = String.format("(%d/%d)", aCount, aCount + rCount);
+            out.append(String.format("\n_________Knoten %s %sist adjazent %s zu: ", v.getId(), name, count));
             Iterator ita = v.getAdjazete().values().iterator();
             out.append(printHashtable(v.getAdjazete()));
-            out.append(" (Insgesammt: " + v.getAdjazete().values().size() + " Stück)");
-            out.append("\nund ist enfernt zu: ");
-            out.append(printHashtable(v.getRemoved()));
-            out.append(" (Insgesammt: " + v.getRemoved().values().size() + " Stück)");
+            out.append("\nund nicht zu: ");
+            out.append(printHashtable(v.getRemoved()) + "\n");
         }
         return out.toString();
     }
@@ -43,7 +45,8 @@ public class PrintUtils {
         while (ita.hasNext()) {
             Vertex va = (Vertex) ita.next();
             if (va != null) {
-                out.append(va.getId());
+                String name = va.getName().isPresent() ? String.format(" (%s)", va.getName().get()) : "";
+                out.append(va.getId() + name);
             }
             if (ita.hasNext()) {
                 out.append(", ");
@@ -81,7 +84,8 @@ public class PrintUtils {
         Iterator it = clique.values().iterator();
         while (it.hasNext()) {
             Vertex v = (Vertex) it.next();
-            out.append(v.getId() + " Knoten hat die Popularität: " + v.getPopularity() + "\n");
+            String name = v.getName().isPresent() ? String.format("(%s) ", v.getName().get()) : "";
+            out.append(v.getId() + " Knoten " + name + "hat die Popularität: " + v.getPopularity() + "\n");
         }
         return out.toString();
     }
@@ -113,7 +117,8 @@ public class PrintUtils {
         out.append("printTreeMap():\n");
         while (it.hasNext()) {
             Vertex v = (Vertex) it.next();
-            out.append(v.getId());
+            String name = v.getName().isPresent() ? String.format(" (%s)", v.getName().get()) : "";
+            out.append(v.getId() + name);
             if (it.hasNext()) {
                 out.append(", ");
             }
