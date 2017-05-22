@@ -3,26 +3,15 @@ package logic.maximalecliquen;
 /**
  * Some Description
  *
- * @author Maciej Niemczyk (Maciej@gmx.de)
+ * @author maciej.niemczyk@voipfuture.com
  */
-public class Edge {
+public interface Edge {
 
-    private Vertex v1;
-    private Vertex v2;
+    Vertex getV1();
 
-    public Vertex getV1() {
-        return v1;
-    }
+    void setV1(Vertex v1);
 
-    public void setV1(Vertex v1) {
-        this.v1 = v1;
-    }
+    Vertex getV2();
 
-    public Vertex getV2() {
-        return v2;
-    }
-
-    public void setV2(Vertex v2) {
-        this.v2 = v2;
-    }
+    void setV2(Vertex v2);
 }

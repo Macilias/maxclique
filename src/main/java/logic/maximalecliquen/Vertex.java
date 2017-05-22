@@ -5,54 +5,27 @@ import java.util.Hashtable;
 /**
  * Some Description
  *
- * @author Maciej Niemczyk (Maciej@gmx.de)
+ * @author maciej.niemczyk@voipfuture.com
  */
-public class Vertex implements java.lang.Comparable<Vertex> {
+public interface Vertex {
 
-    public Vertex(int id){
-        this.id = id;
-    }
-    public int id = 0;
-    private int popularity = 0;
+    boolean adjazent(Vertex v);
 
-    Hashtable adjazete = new Hashtable();
+    boolean isRemoved(Vertex v);
 
-    public boolean adjazent(Vertex v){
-        if(this.adjazete.containsKey(v.id)){ return true;}
-        else{ return false;}
-    }
+    int getId();
 
-    Hashtable removed = new Hashtable();
+    int getPopularity();
 
-    public boolean isRemoved(Vertex v){
-        if(this.removed.containsKey(v.id)){
-            return true;
-        }
-        return false;
-    }
+    void incPopularity();
 
-    public int getPopularity() {
-        return popularity;
-    }
+    void decPopularity();
 
-    public void incPopularity() {
-        this.popularity = popularity+1;
-    }
+    void resPopularity();
 
-    public void decPopularity() {
-        this.popularity = popularity-1;
-    }
+    Hashtable<Integer, Vertex> getAdjazete();
 
-    public void resPopularity() {
-        this.popularity = 0;
-    }
+    Hashtable<Integer, Vertex> getRemoved();
 
-    public int compareTo(Vertex o) {
-        int comp = 0;
-        if(this.getPopularity()<o.getPopularity()) comp = -1;
-        if(this.getPopularity()==o.getPopularity()) comp = 0;
-        if(this.getPopularity()<o.getPopularity())  comp = 1;
-        return comp;
-    }
-
+    int compareTo(Vertex o);
 }

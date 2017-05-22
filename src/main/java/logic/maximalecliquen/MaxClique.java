@@ -55,7 +55,7 @@ public class MaxClique {
     public Collection<Vertex> importMatrix(int[][] matrix) {
         ArrayList<Vertex> graph = new ArrayList<>();
         for (int i = 0; i < matrix.length; i++) {
-            Vertex v = new Vertex(i + 1);
+            Vertex v = new VertexImpl(i + 1);
             graph.add(v);
         }
         for (int i = 0; i < matrix.length; i++) {
@@ -63,9 +63,9 @@ public class MaxClique {
                 if (graph.get(i) != null) {
                     Vertex v = (Vertex) graph.get(i);
                     if (matrix[i][j] == 1) {
-                        v.adjazete.put(((Vertex) graph.get(j)).id, graph.get(j));
+                        v.getAdjazete().put(((Vertex) graph.get(j)).getId(), graph.get(j));
                     } else {
-                        if (i != j) v.removed.put(((Vertex) graph.get(j)).id, graph.get(j));
+                        if (i != j) v.getRemoved().put(((Vertex) graph.get(j)).getId(), graph.get(j));
                     }
                 }
             }
@@ -81,7 +81,7 @@ public class MaxClique {
         // histogramm erstellen
         ArrayList<ArrayList<Vertex>> buckets = initializeEmptyBuckets(graph.size());
         for (Vertex v : graph) {
-            int size = v.adjazete.values().size();
+            int size = v.getAdjazete().values().size();
             buckets.get(size).add(v);
             intbuckets[size]++;
         }
@@ -132,13 +132,13 @@ public class MaxClique {
         // die Cliquen als TreeMaps sonst die Knoten der Grössten Clique
         int maxGrad = graph.size();
         if (maxGrad == 0) {
-            LOG.info("Der graph war leer");
+            LOG.warning("Der graph war leer");
             return new ArrayList<Vertex>();
         }
         if (maxElseAll) {
             int[] intbuckets = new int[graph.size()];
             graph = bucketsort(graph, intbuckets);
-            maxGrad = ((graph.get(0)).adjazete.values().size()) + 1;
+            maxGrad = (graph.get(0).getAdjazete().values().size()) + 1;
             int anz = 0;
             if (maxGrad - 1 > 0) anz = intbuckets[maxGrad - 1];
             if (LOG.isLoggable(Level.FINEST)) {
@@ -166,28 +166,28 @@ public class MaxClique {
         for (int i = 0; i < graph.size() && max.size() < maxGrad; i++) {
             Vertex v = graph.get(i);
             if (maxElseAll) {
-                if (v.adjazete.values().size() + 1 < maxGrad) {
+                if (v.getAdjazete().values().size() + 1 < maxGrad) {
                     if (LOG.isLoggable(Level.FINEST)) {
                         LOG.finest("Bisheriger MaxGrad = " + maxGrad);
-                        LOG.finest("Aktuelle AdjAnzahl = " + v.adjazete.values().size());
+                        LOG.finest("Aktuelle AdjAnzahl = " + v.getAdjazete().values().size());
                     }
-                    maxGrad = v.adjazete.values().size() + 1;
+                    maxGrad = v.getAdjazete().values().size() + 1;
                     if (max.size() >= maxGrad) break;
                 }
             }
-            tmx.put(v.id, v);
-            LOG.finer("__Beginne neue MaxCliquenSuche bei " + v.id + "ten Knoten!__");
+            tmx.put(v.getId(), v);
+            LOG.finer("__Beginne neue MaxCliquenSuche bei " + v.getId() + "ten Knoten!__");
             LOG.finer(i + " von " + graph.size());
-            LOG.finest(" bei " + v.adjazete.values().size() +
+            LOG.finest(" bei " + v.getAdjazete().values().size() +
                     " Adjazenten und Profezeihung einer höchstens " + maxGrad +
                     " elemtrigen Clique");
             LOG.finest("Seine Adjazenten sind: ");
-            Enumeration a = v.adjazete.elements();
+            Enumeration a = v.getAdjazete().elements();
             StringBuffer logBuf = new StringBuffer();
             while (a.hasMoreElements()) {
                 Vertex adj = (Vertex) a.nextElement();
-                if (LOG.isLoggable(Level.FINEST)) logBuf.append(adj.id + ", ");
-                tmx.put(adj.id, adj);
+                if (LOG.isLoggable(Level.FINEST)) logBuf.append(adj.getId() + ", ");
+                tmx.put(adj.getId(), adj);
             }
             if (LOG.isLoggable(Level.FINEST)) {
                 LOG.finest(logBuf.toString());
@@ -198,12 +198,12 @@ public class MaxClique {
             while (it1tmx.hasNext()) {
                 Vertex mem = (Vertex) it1tmx.next();
                 mem.incPopularity(); //Der Knoten kennst sich schliesslich auch
-                LOG.finest("Ist der " + mem.id + "te adjazent zu anderen Members?");
-                //Proove member
+                LOG.finest("Ist der " + mem.getId() + "te adjazent zu anderen Members?");
+                // prove member
                 for (Object o : tmx.values()) {
                     Vertex othermem = (Vertex) o;
                     if (!mem.equals(othermem)) {
-                        LOG.finest("Zu " + othermem.id + "ten adjazent?: ");
+                        LOG.finest("Zu " + othermem.getId() + "ten adjazent?: ");
 //                        if (commentLevel > 2) if ((othermem.id) < 10) System.out.print(" ");
                         if (!mem.adjazent(othermem)) {
                             othermem.decPopularity();
@@ -231,14 +231,14 @@ public class MaxClique {
                     if (mem.getPopularity() > other.getPopularity()) mem = other;
                 }
                 //Rekonstruktion des Zusatands vor seiner Bewertung:
-                LOG.finest("Mitunter die schlechteste Bewertung hatte der " + mem.id + "te Knoten");
+                LOG.finest("Mitunter die schlechteste Bewertung hatte der " + mem.getId() + "te Knoten");
                 LOG.finest("Nun wird der Zustand vor seiner Bewertung rekostruiert");
                 //Proove Popularity
                 ittmx = tmx.values().iterator();
                 while (ittmx.hasNext()) {
                     Vertex othermem = (Vertex) ittmx.next();
                     if (!mem.equals(othermem)) {
-                        LOG.finest("Bei " + othermem.id + " ");
+                        LOG.finest("Bei " + othermem.getId() + " ");
                         if (!mem.adjazent(othermem)) {
                             othermem.incPopularity();
                             LOG.finest("steigt die Popularität: " + othermem.getPopularity());
@@ -250,7 +250,7 @@ public class MaxClique {
                     }
                 }
                 LOG.finest("Der Knoten wird aus der Clique enfertnt");
-                tmx.remove(mem.id);
+                tmx.remove(mem.getId());
                 LOG.finest( printCliqueTree(tmx));
                 cliqueStehtFest = isClique(tmx);
             }
@@ -298,7 +298,7 @@ public class MaxClique {
     }
 
     /**
-     * Überwacht den transfairvorgang von arra zum vector
+     * Gibt die String represenation des Graphen aus
      *
      * @param graph der Graph als Vektror von Knoten mit adjazenten
      * @author Maciek
@@ -307,25 +307,25 @@ public class MaxClique {
         StringBuffer out = new StringBuffer();
         for (int i = 0; i < graph.size(); i++) {
             Vertex v = graph.get(i);
-            out.append(v.id + " Knoten ist adjazent zu: ");
-            Iterator ita = v.adjazete.values().iterator();
+            out.append(v.getId() + " Knoten ist adjazent zu: ");
+            Iterator ita = v.getAdjazete().values().iterator();
             while (ita.hasNext()) {
                 Vertex va = (Vertex) ita.next();
                 if (va != null) {
-                    out.append(va.id + ",");
+                    out.append(va.getId() + ",");
                 }
             }
-            out.append("Insgesammt: " + v.adjazete.values().size() + " Stück \n");
+            out.append("Insgesammt: " + v.getAdjazete().values().size() + " Stück \n");
             out.append("\n");
             out.append("und ist enfernt zu: ");
-            Iterator ite = v.removed.values().iterator();
+            Iterator ite = v.getRemoved().values().iterator();
             while (ite.hasNext()) {
                 Vertex ve = (Vertex) ite.next();
                 if (ve != null) {
-                    out.append(ve.id + ",");
+                    out.append(ve.getId() + ",");
                 }
             }
-            out.append("Insgesammt: " + v.removed.values().size() + " Stück");
+            out.append("Insgesammt: " + v.getRemoved().values().size() + " Stück");
             out.append("\n");
         }
         return out.toString();
@@ -343,7 +343,7 @@ public class MaxClique {
         Iterator it = clique.values().iterator();
         while (it.hasNext()) {
             Vertex v = (Vertex) it.next();
-            out.append(v.id + ", ");
+            out.append(v.getId() + ", ");
         }
         out.append("\n");
         return out.toString();
@@ -361,7 +361,7 @@ public class MaxClique {
         Iterator it = clique.values().iterator();
         while (it.hasNext()) {
             Vertex v = (Vertex) it.next();
-            out.append(v.id + " Knoten hat die Popularität: " + v.getPopularity() + "\n");
+            out.append(v.getId() + " Knoten hat die Popularität: " + v.getPopularity() + "\n");
         }
         return out.toString();
     }
@@ -385,7 +385,7 @@ public class MaxClique {
         StringBuffer buffer = new StringBuffer();
         while (it.hasNext()) {
             Vertex v = (Vertex) it.next();
-            buffer.append(v.id + ", ");
+            buffer.append(v.getId() + ", ");
         }
         return buffer.toString();
     }
@@ -410,7 +410,7 @@ public class MaxClique {
 
     /**
      * Findet die Maximale Clique durch betrachten der adjazenten
-     * eines Knoten als seine Clique und anschliessenden auschluss von
+     * eines Knoten als seine Clique und anschliessenden Auschluss von
      * Knoten die untereinander nicht adjazent sind.
      *
      * @param graph als Vektror von Knoten mit Adjazenten
@@ -420,32 +420,30 @@ public class MaxClique {
     public ArrayList<Vertex> findmaxcliqueHASH(ArrayList<Vertex> graph) {
         //Durchsuch den Graphen nach höchsten adjazenten Grad
         //Grad = Anzahl von Verbindungen mit anderen Knoten
-        int maxGrad = 0;
-        for (int g = 0; g < graph.size(); g++) {
-            Vertex v = (Vertex) graph.get(g);
-            if (v.adjazete.size() > maxGrad) maxGrad = v.adjazete.size();
-        }
+        int maxGrad = getMaxGrad(graph);
         ArrayList<Vertex> max = new ArrayList<>();
         ArrayList<Vertex> tmx = new ArrayList<>();
         //Alle Knoten bilden eigene Cliquen die geprüft werden müssen
-        //Sollte jedoch schon eine Clique mit maximaler Anzahl adjazenten
+        //Sollte jedoch schon eine Clique mit maximaler Anzahl adjazenten (= maxGrad)
         //bereits gefunden sein, so kann das Ergebniss nicht mehr
         //verbessert weredn.
         for (int i = 0; i < graph.size() && max.size() < maxGrad; i++) {
             Vertex v = graph.get(i);
             tmx.add(v);
-            System.out.println("__Beginne neue MaxCliquenSuche bei " + v.id + "ten Knoten!__");
-            Enumeration a = v.adjazete.elements();
+            LOG.info("__Beginne neue MaxCliquenSuche bei " + v.getId() + "ten Knoten!__");
+            Enumeration a = v.getAdjazete().elements();
+            StringBuffer buffer = new StringBuffer();
             while (a.hasMoreElements()) {
                 Vertex adj = (Vertex) a.nextElement();
-                System.out.print(adj.id + ", ");
+                buffer.append(adj.getId() + ", ");
                 tmx.add(adj);
             }
+            LOG.info(buffer.toString());
             for (int k = 1; k < tmx.size(); k++) {
-                Vertex mem = (Vertex) tmx.get(k);
+                Vertex mem = tmx.get(k);
                 mem.incPopularity(); //Der Knoten kennst sich schliesslich auch
                 for (int l = 0; l < tmx.size(); l++) {
-                    Vertex othermem = (Vertex) tmx.get(l);
+                    Vertex othermem = tmx.get(l);
                     if (!mem.equals(othermem)) {
                         if (!mem.adjazent(othermem)) {
                             othermem.decPopularity();
@@ -455,27 +453,24 @@ public class MaxClique {
                     }
                 }
             }
-            // Eine Clique wird gefunden wenn die Popularität der Mitglieder
-            // gleich der Grösse der Clique -1  ist
-            // Könnte noch beschleunigt werden durch HEAP da das kleinste Element vorne währe
-            boolean CliqueStehtFest = true;
-            for (int m = 0; m < tmx.size() && CliqueStehtFest; m++) {
-                if (((Vertex) tmx.get(m)).getPopularity() != tmx.size() - 1) {
-                    CliqueStehtFest = false;
-                }
-            }
+            // Eine Clique stellt sich ein, wenn die Popularität der Mitglieder
+            // gleich der Grösse der Clique -1 ist
+            // (Dies Könnte noch beschleunigt werden durch HEAP da das kleinste Element vorne währe
+            // und man somit sofort den Gegenbeis (m.popularity != tmx.size) hätte, und es später
+            // schneller enfernen könnte)
+            boolean CliqueStehtFest = isClique(tmx);
             while (!CliqueStehtFest) {
                 // Suche des unpoulärsten Knotens:
-                // DESWEGEN CLIQUEN ALS HEAP SPEICHERN:
-                Vertex mem = (Vertex) tmx.get(0);
+                // DESWEGEN AUCH CLIQUEN ALS HEAP SPEICHERN:
+                Vertex mem = tmx.get(0);
                 for (int k = 1; k < tmx.size(); k++) {
-                    Vertex temp = (Vertex) tmx.get(k);
+                    Vertex temp = tmx.get(k);
                     if (temp.getPopularity() < mem.getPopularity()) mem = temp;
                 }
                 // Rekonstruktion des Zusatands vor seiner Bewertung:("Nun wird der Zustand vor seiner Bewertung rekostruiert");
                 // Proove Popularity
                 for (int l = 0; l < tmx.size(); l++) {
-                    Vertex othermem = (Vertex) tmx.get(l);
+                    Vertex othermem = tmx.get(l);
                     if (!mem.equals(othermem)) {
                         if (!mem.adjazent(othermem)) {
                             othermem.incPopularity();
@@ -492,9 +487,7 @@ public class MaxClique {
                 }
             }
             // Resete die Popularitäten:
-            for (int n = 0; n < graph.size(); n++) {
-                ((Vertex) graph.get(n)).resPopularity(); //Neue Clique - neue Popularität
-            }
+            resetPopularity(graph);
             // compare Cliques
             LOG.info("Bisher ist die Gösste Clique max mit " + max.size() + " Knoten");
             LOG.info("Unsere neue hat " + tmx.size() + " Knoten");
@@ -511,10 +504,30 @@ public class MaxClique {
         StringBuffer buffer = new StringBuffer();
         for (int i = 0; i < max.size(); i++) {
             Vertex v = max.get(i);
-            buffer.append(v.id + ", ");
+            buffer.append(v.getId() + ", ");
         }
         LOG.info(buffer.toString());
         return max;
+    }
+
+    private boolean isClique(ArrayList<Vertex> tmx) {
+        boolean CliqueStehtFest = true;
+        for (int m = 0; m < tmx.size() && CliqueStehtFest; m++) {
+            if ((tmx.get(m)).getPopularity() != tmx.size() - 1) {
+                CliqueStehtFest = false;
+                break;
+            }
+        }
+        return CliqueStehtFest;
+    }
+
+    private int getMaxGrad(ArrayList<Vertex> graph) {
+        int maxGrad = 0;
+        for (int g = 0; g < graph.size(); g++) {
+            Vertex v = graph.get(g);
+            if (v.getAdjazete().size() > maxGrad) maxGrad = v.getAdjazete().size();
+        }
+        return maxGrad;
     }
 
 }
