@@ -21,7 +21,7 @@ public class Main {
     public static void main(String[] args) {
 
         //GraphUtils.randomGraph(1792)
-        Collection<Vertex> graph = GraphUtils.importMatrix(Examples.adM5, ExamplesNames.family, true);
+        Collection<Vertex> graph = GraphUtils.importMatrix(Examples.family, ExamplesNames.family, true);
         Collection<Vertex> maxclique = logic.findMaxClique(graph);
 
     }
