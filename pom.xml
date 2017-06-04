@@ -11,7 +11,7 @@
   <properties>
     <slf4j-log4j12.version>1.7.12</slf4j-log4j12.version>
     <commons-lang3.version>3.4</commons-lang3.version>
-    <maven.version>3.3.3</maven.version>
+    <maven.version>3.3.9</maven.version>
     <junit.version>4.11</junit.version>
   </properties>
 
@@ -48,6 +48,27 @@
         <configuration>
           <source>1.8</source>
           <target>1.8</target>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.4.0</version>
+        <configuration>
+          <mainClass>view.Main</mainClass>
+        </configuration>
+      </plugin>
+      <plugin>
+        <!-- Build an executable JAR -->
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.0.2</version>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>view.Main</mainClass>
+            </manifest>
+          </archive>
         </configuration>
       </plugin>
     </plugins>

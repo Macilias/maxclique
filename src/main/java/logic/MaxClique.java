@@ -1,7 +1,6 @@
 package logic;
 
 import model.Vertex;
-import model.VertexImpl;
 import model.enums.CommentLevel;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
@@ -9,8 +8,8 @@ import org.apache.log4j.Logger;
 
 import java.util.*;
 
-import static logic.PrintUtils.*;
 import static logic.GraphUtils.*;
+import static logic.PrintUtils.*;
 
 
 /**
